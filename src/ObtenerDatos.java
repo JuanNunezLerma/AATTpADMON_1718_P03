@@ -51,7 +51,7 @@ public class ObtenerDatos {
         }
         return user;
     }
-
+//Devuelve la cadena completa del certificado
     public byte[] leerCertificado(CardChannel ch) throws CardException, CertificateException {
 
 
@@ -136,17 +136,30 @@ public class ObtenerDatos {
 
         do {
              //[4] PRÃ�CTICA 3. Punto 1.b
-            final byte CLA = (byte) 0x00;//Buscar quÃ© valor poner aquÃ­ (0xFF no es el correcto)
-            final byte INS = (byte) 0xB0;//Buscar quÃ© valor poner aquÃ­ (0xFF no es el correcto)
-            final byte LE = (byte) 0xFF;// Identificar quÃ© significa este valor
+        	/*Comando Read Binary, este comando devuelve en su mensaje de respuesta el contenido (o parte) de
+        	un fichero elemental transparente.
+        	 */
+            final byte CLA = (byte) 0x00;//Este valor puede variar desde 0x00 hasta 0x0F
+            final byte INS = (byte) 0xB0;//Valor donde se especifica el comando
+            final byte LE = (byte) 0xFF; //FF=255, si el campo Le=0 el número de bytes a leer es 256. 
+            							//LE es Número de bytes a leer
+
+           
 
             //[4] PRÃ�CTICA 3. Punto 1.b
+            
+            //P1-P2 Salida del primer byte a leer desde el principio del fichero.
+            //Aqui indicamos desde donde se va a leer
             command = new byte[]{CLA, INS, (byte) bloque/*P1*/, (byte) 0x00/*P2*/, LE};//Identificar quÃ© hacen P1 y P2
             r = ch.transmit(new CommandAPDU(command));
-
-            //System.out.println("ACCESO DNIe: Response SW1=" + String.format("%X", r.getSW1()) + " SW2=" + String.format("%X", r.getSW2()));
-
+            
+           //Mensaje de respuesta
+           // System.out.println("ACCESO DNIe: Response SW1=" + String.format("%X", r.getSW1()) + " SW2=" + String.format("%X", r.getSW2()));
+           //Devuelve  SW1=90 SW2=0, estos son los bytes de estado
+            
+            //Comprobamos que sea correcto
             if ((byte) r.getSW() == (byte) 0x9000) {
+            	//Si es 9000 es Ok, cualquier otro valor estado negativo
                 r2 = r.getData();
 
                 baos.write(r2, 0, r2.length);
@@ -154,6 +167,7 @@ public class ObtenerDatos {
                 for (int i = 0; i < r2.length; i++) {
                     byte[] t = new byte[1];
                     t[0] = r2[i];
+                    //Los va imprimiendo en bloques de 256 bytes
                     System.out.println(i + (0xff * bloque) + String.format(" %2X", r2[i]) + " " + String.format(" %d", r2[i])+" "+new String(t));
                 }
                 bloque++;
